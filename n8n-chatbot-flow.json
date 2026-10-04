@@ -10,26 +10,27 @@
           "allowedOrigins": "*"
         }
       },
-      "id": "WebhookLandingChat",
+      "id": "12c549df-91a7-4b87-a5f2-7a54fe3db989",
       "name": "Webhook - Mensaje desde la landing",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        180,
-        300
-      ]
+        0,
+        0
+      ],
+      "webhookId": "c44972f4-595e-4369-900c-e835e61e4f30"
     },
     {
       "parameters": {
         "jsCode": "const body = $input.first().json.body || {};\nconst userMessage = String(body.message || '').trim();\nconst page = body.page || 'landing-page';\n\nconst systemContext = `Eres el asistente virtual de Curcu Amador, una landing page academica de un suplemento de curcuma. Responde en espanol, de forma breve, clara y amable. El precio mostrado en la pagina es S/ 90. Responde preguntas sobre el producto y aclara que esta pagina es una demostracion academica sin canal de compra configurado. No inventes datos de envio, disponibilidad ni propiedades medicas. Si preguntan por salud, recomienda consultar a un profesional.`;\n\nreturn [{\n  json: {\n    userMessage,\n    page,\n    geminiRequest: {\n      contents: [\n        {\n          role: 'user',\n          parts: [\n            {\n              text: `${systemContext}\\n\\nConsulta del visitante: ${userMessage}`\n            }\n          ]\n        }\n      ],\n      generationConfig: {\n        temperature: 0.4,\n        maxOutputTokens: 512\n      }\n    }\n  }\n}];"
       },
-      "id": "PrepareGeminiPrompt",
+      "id": "ebf79c8a-c102-44b4-96c5-28a8bba8421c",
       "name": "Preparar prompt para Gemini",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        440,
-        300
+        272,
+        0
       ]
     },
     {
@@ -50,30 +51,30 @@
           ]
         },
         "sendBody": true,
-        "contentType": "json",
+        "specifyBody": "json",
         "jsonBody": "={{ $json.geminiRequest }}",
         "options": {}
       },
-      "id": "CallGemini",
+      "id": "e9ae8322-a5e7-4fcd-b372-13d6cfe9168f",
       "name": "Consultar Gemini",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        700,
-        300
+        528,
+        0
       ]
     },
     {
       "parameters": {
         "jsCode": "const data = $input.first().json;\nconst reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Gracias por escribir. Puedo ayudarte con el precio y la informacion mostrada en la pagina.';\nreturn [{ json: { reply } }];"
       },
-      "id": "ParseGeminiResponse",
+      "id": "8ec3a380-1244-40a3-a87f-f35850ef5983",
       "name": "Preparar respuesta al sitio web",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        960,
-        300
+        784,
+        0
       ]
     },
     {
@@ -95,16 +96,17 @@
           }
         }
       },
-      "id": "RespondToLanding",
+      "id": "45a630ed-1397-4204-9d3a-b96e6705f5b3",
       "name": "Responder a la landing",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        1220,
-        300
+        1040,
+        0
       ]
     }
   ],
+  "pinData": {},
   "connections": {
     "Webhook - Mensaje desde la landing": {
       "main": [
@@ -151,20 +153,29 @@
       ]
     }
   },
-  "pinData": {},
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
-  "staticData": null,
+  "versionId": "408f4c58-aacd-4523-af58-9033d9de5aa8",
+  "meta": {
+    "instanceId": "0a859a54c1ad94b4c5c4b20a19c4d157a290b5e7f6f8a3f0fb9b22f84fdb1abd"
+  },
+  "nodeGroups": [],
+  "id": "0wlSJTuk8aVkTQFR",
   "tags": [
     {
+      "updatedAt": "2026-10-04T14:16:45.854Z",
+      "createdAt": "2026-10-04T14:16:45.854Z",
+      "id": "2u8pgqJ90iYLYPvz",
       "name": "Gemini"
     },
     {
+      "updatedAt": "2026-10-04T14:16:45.864Z",
+      "createdAt": "2026-10-04T14:16:45.864Z",
+      "id": "Yed08GkrdVs0LB2T",
       "name": "Proyecto academico"
     }
-  ],
-  "triggerCount": 1,
-  "updatedAt": "2026-09-29T00:00:00.000Z",
-  "versionId": "2"
+  ]
 }

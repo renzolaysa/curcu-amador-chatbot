@@ -2,9 +2,9 @@
 
 Este proyecto contiene los dos entregables solicitados y los archivos para ejecutarlos:
 
-1. `index.html`: landing page lista para publicar en GitHub Pages.
-2. `n8n-chatbot-flow.json`: flujo de n8n para importar y activar el chatbot con Gemini.
-3. `docker-compose.yml`: configuracion para levantar n8n local con Docker.
+1. `index.html`: landing page publicada en https://renzolaysa.github.io/curcu-amador-chatbot/.
+2. `n8n-chatbot-flow.json`: exportacion real del flujo publicado en n8n.
+3. `docker-compose.yml` y `nginx.conf`: n8n local, proxy limitado al webhook y tunel publico.
 4. `.env.example`: plantilla para guardar la API key de Gemini sin ponerla en la pagina web.
 
 ## 0. Levantar n8n local con Docker
@@ -41,7 +41,7 @@ http://localhost:5678
 2. Crea un workflow nuevo.
 3. Usa la opcion **Import from file**.
 4. Selecciona `n8n-chatbot-flow.json`.
-5. Activa el workflow.
+5. Publica el workflow.
 6. Copia la URL de produccion del Webhook. Debe terminar en:
 
 ```text
@@ -51,30 +51,31 @@ http://localhost:5678
 ## 2. Exponer n8n con un tunel publico
 
 Si n8n corre localmente, GitHub Pages no puede llamarlo usando `localhost`.
-Para que el profesor pueda probar el chatbot, manten Docker Desktop y n8n encendidos y usa un tunel publico.
-Un dominio de desarrollo asignado por ngrok permanece estable entre reinicios del tunel; requiere una cuenta gratuita y un authtoken local. Cloudflare Quick Tunnel no requiere cuenta, pero su URL cambia cada vez que se inicia.
-
-Con Docker, una opcion rapida es ejecutar:
+El servicio `tunnel` en `docker-compose.yml` crea una URL publica temporal y apunta al proxy `webhook-proxy`. Este proxy solo admite POST al webhook del chatbot y no expone el panel de n8n.
+Desde la carpeta del proyecto, ejecuta:
 
 ```powershell
-docker run --rm -it cloudflare/cloudflared:latest tunnel --url http://host.docker.internal:5678
+docker compose up -d
+docker compose logs --tail=30 tunnel
 ```
 
-Copia la URL publica que entrega Cloudflare. Sera parecida a:
+Copia la URL publica que entrega Cloudflare. La URL actual es:
 
 ```text
-https://algo-random.trycloudflare.com
+https://rome-systematic-rides-gore.trycloudflare.com
 ```
+
+La URL de Quick Tunnel cambia cuando el tunel se reinicia. Para una entrega que deba funcionar despues de reiniciar Docker, hay que sustituirla por un tunel con dominio estable y actualizar `index.html`. Mantener Docker y la PC encendidos es necesario en ambos casos.
 
 ## 3. Conectar la landing page con n8n
 
 Abre `index.html` y busca esta linea:
 
 ```js
-const N8N_WEBHOOK_URL = "https://TU-TUNEL-PUBLICO/webhook/chatbot-curcuma-amador";
+const N8N_WEBHOOK_URL = "https://rome-systematic-rides-gore.trycloudflare.com/webhook/chatbot-curcuma-amador";
 ```
 
-Reemplaza esa URL por la URL publica del tunel que apunte a tu n8n local.
+Reemplaza esa URL si el tunel se reinicia y cambia de direccion. Vuelve a publicar el archivo en GitHub Pages despues del cambio.
 
 ## 4. Publicar en GitHub Pages
 

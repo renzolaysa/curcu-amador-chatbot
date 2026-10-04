@@ -16,5 +16,24 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
 
+  webhook-proxy:
+    image: nginx:alpine
+    container_name: curcu-webhook-proxy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - n8n
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: curcu-webhook-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://webhook-proxy:8080
+    depends_on:
+      - webhook-proxy
+
 volumes:
   n8n_data:
