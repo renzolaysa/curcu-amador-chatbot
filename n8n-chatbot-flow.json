@@ -1,0 +1,170 @@
+{
+  "name": "Chatbot Gemini - Landing Page GitHub Pages",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatbot-curcuma-amador",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "WebhookLandingChat",
+      "name": "Webhook - Mensaje desde la landing",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        180,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst userMessage = String(body.message || '').trim();\nconst page = body.page || 'landing-page';\n\nconst systemContext = `Eres el asistente virtual de Curcu Amador, una landing page academica de un suplemento de curcuma. Responde en espanol, de forma breve, clara y amable. El precio mostrado en la pagina es S/ 90. Responde preguntas sobre el producto y aclara que esta pagina es una demostracion academica sin canal de compra configurado. No inventes datos de envio, disponibilidad ni propiedades medicas. Si preguntan por salud, recomienda consultar a un profesional.`;\n\nreturn [{\n  json: {\n    userMessage,\n    page,\n    geminiRequest: {\n      contents: [\n        {\n          role: 'user',\n          parts: [\n            {\n              text: `${systemContext}\\n\\nConsulta del visitante: ${userMessage}`\n            }\n          ]\n        }\n      ],\n      generationConfig: {\n        temperature: 0.4,\n        maxOutputTokens: 512\n      }\n    }\n  }\n}];"
+      },
+      "id": "PrepareGeminiPrompt",
+      "name": "Preparar prompt para Gemini",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-goog-api-key",
+              "value": "={{ $env.GEMINI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ $json.geminiRequest }}",
+        "options": {}
+      },
+      "id": "CallGemini",
+      "name": "Consultar Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Gracias por escribir. Puedo ayudarte con el precio y la informacion mostrada en la pagina.';\nreturn [{ json: { reply } }];"
+      },
+      "id": "ParseGeminiResponse",
+      "name": "Preparar respuesta al sitio web",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "RespondToLanding",
+      "name": "Responder a la landing",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1220,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Mensaje desde la landing": {
+      "main": [
+        [
+          {
+            "node": "Preparar prompt para Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar prompt para Gemini": {
+      "main": [
+        [
+          {
+            "node": "Consultar Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Gemini": {
+      "main": [
+        [
+          {
+            "node": "Preparar respuesta al sitio web",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar respuesta al sitio web": {
+      "main": [
+        [
+          {
+            "node": "Responder a la landing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Gemini"
+    },
+    {
+      "name": "Proyecto academico"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-09-29T00:00:00.000Z",
+  "versionId": "2"
+}
